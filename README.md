@@ -1,5 +1,14 @@
 Ancient project since my very 1st day of programming.
 
+This project is freezed and I'm no longer support for any bug fix.
+
+Usage
+=====
+
+Main program is `MergeLollipop.java`, compile it and run.
+
+You'll need pre-animated many short `*.mlf` files to concat them all together.
+
 File Analysis
 =============
 
@@ -38,3 +47,9 @@ The possible value (brightness of each LED) are:
     0 16 32 48 64 80 96 112
 
 I don't remember exactly if the frames arg (from header part) is the indicate for how many frames in file, or you can just ignore it and only append LED animation.
+
+License
+=======
+
+WTFPL v2.0 - neizod (C) 2010
+
