@@ -1,0 +1,170 @@
+---
+---
+
+<h1>LG Lollypop (GD580) Front Light LED Merger</h1>
+
+<form action="javascript:void(0);">
+  <label>File 1</label>
+  <input id="file-1" type="file" />
+  <label>File 2</label>
+  <input id="file-2" type="file" />
+  <button id="download">Download</button>
+</form>
+
+<hr />
+
+<table border="1">
+{% for y in (0..14) %}
+  <tr>
+  {% for x in (0..6) %}
+    <td id="cell-{{x}}-{{y}}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+  {% endfor %}
+  </tr>
+{% endfor %}
+</table>
+<p id="curr-frames">Frames: 0/0</p>
+
+<hr />
+
+<h2>How to Use?</h2>
+<ol>
+    <li>Export <code>".mlf"</code> files from your phone to your computer.</li>
+    <li>Select 2 files to merge.</li>
+    <li>(Optional) preview your animation.</li>
+    <li>Click "Download" button to download the result file to your computer.</li>
+    <li>Import result file into your phone and have fun :D</li>
+</ol>
+
+<h2>Caution</h2>
+<ol>
+    <li>Animation <em>should't</em> exceed 255 frames. (you may try exceed that limit with your own risk.)</li>
+    <li>Light intensity other than {0, 16, 32, ..., 112} will be drawn red in this app, and might not work in the real phone. (in case you use other app to change those values directly.)</li>
+</ol>
+
+<h2>License</h2>
+<p>WTFPL v2.0 - neizod (C) 2020</p>
+
+
+
+<script>
+var c1 = [1, 0, 0, 150, 7, 0];
+var c2 = [1, 0, 0, 150, 7, 0];
+var out = [1, 0, 0, 150, 7, 0];
+var curr = 0;
+var frames = 0;
+var animation_id = null;
+
+function header(l1, l2) {
+    if (l1 !== null && l2 !== null)
+        return [1, 0, l1+l2, 150, 7, 15];
+    if (l1 !== null)
+        return [1, 0, l1, 150, 7, 15];
+    if (l2 !== null)
+        return [1, 0, l2, 150, 7, 15];
+    return [1, 0, 0, 150, 7, 15];
+}
+
+function set_variable(i1, i2) {
+    if (i1 !== null)
+        c1 = i1;
+    if (i2 !== null)
+        c2 = i2;
+}
+
+function color(intensity) {
+    switch (intensity) {
+        case   0: return '#fff';
+        case  16: return '#ddd';
+        case  32: return '#bbb';
+        case  48: return '#999';
+        case  64: return '#777';
+        case  80: return '#555';
+        case  96: return '#333';
+        case 112: return '#111';
+    }
+    return '#a00';
+}
+
+function clear_grid() {
+    for (var y=0; y<15; y++) {
+        for (var x=0; x<7; x++) {
+            document.getElementById(`cell-${x}-${y}`).bgColor = '#fff';
+        }
+    }
+    document.getElementById('curr-frames').innerHTML = 'Frames: 0/0';
+}
+
+function animate() {
+    if (!frames) {
+        return;
+    }
+    for (var y=0; y<15; y++) {
+        for (var x=0; x<7; x++) {
+            var val = out[6 + 7*15*curr + x + 7*y];
+            document.getElementById(`cell-${x}-${y}`).bgColor = color(val);
+        }
+    }
+    document.getElementById('curr-frames').innerHTML = `Frames; ${curr+1}/${frames}`;
+    curr += 1;
+    curr %= frames;
+}
+
+function reset_animation() {
+    curr = 0;
+    frames = out[2];
+    clearInterval(animation_id);
+    clear_grid();
+    animation_id = setInterval(animate, 100);
+}
+
+function draw(i1, i2) {
+    set_variable(i1, i2);
+    var u1 = new Uint8Array(c1);
+    var u2 = new Uint8Array(c2);
+    out = header(u1[2], u2[2]);
+    out = out.concat(Array.from(u1.subarray(6)), Array.from(u2.subarray(6)));
+    reset_animation();
+}
+
+function load_file_1() {
+    var f = document.getElementById('file-1').files[0];
+    if (!f) {
+        c1 = header(null, c2[2]);
+        draw(null, null);
+    } else {
+        var r = new FileReader();
+        r.addEventListener('load', (e) => draw(e.target.result, null));
+        r.readAsArrayBuffer(f);
+    }
+}
+
+function load_file_2() {
+    var f = document.getElementById('file-2').files[0];
+    if (!f) {
+        c2 = header(c1[2], null);
+        draw(null, null);
+    } else {
+        var r = new FileReader();
+        r.addEventListener('load', (e) => draw(null, e.target.result));
+        r.readAsArrayBuffer(f);
+    }
+}
+
+function download() {
+    var file = new Blob([Uint8Array.from(out)], {type: 'MLF'});
+    var url = URL.createObjectURL(file);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'result.MLF';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }, 0);
+}
+
+document.getElementById('file-1').addEventListener('change', load_file_1);
+document.getElementById('file-2').addEventListener('change', load_file_2);
+document.getElementById('download').addEventListener('click', download);
+</script>
